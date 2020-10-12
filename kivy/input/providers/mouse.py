@@ -163,6 +163,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         EventLoop.window.bind(
             on_mouse_move=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
+            on_mouse_hover=self.on_mouse_hover,
             on_mouse_up=self.on_mouse_release)
 
     def stop(self):
@@ -172,6 +173,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         EventLoop.window.unbind(
             on_mouse_move=self.on_mouse_motion,
             on_mouse_down=self.on_mouse_press,
+            on_mouse_hover=self.on_mouse_hover,
             on_mouse_up=self.on_mouse_release)
 
     def test_activity(self):
@@ -241,6 +243,9 @@ class MouseMotionEventProvider(MotionEventProvider):
             is_double_tap = 'shift' in modifiers
             cur = self.create_touch(rx, ry, is_double_tap, True, [])
         return True
+
+    def on_mouse_hover(self, win, x, y, modifiers):
+        pass
 
     def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():

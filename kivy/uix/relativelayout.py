@@ -305,6 +305,14 @@ class RelativeLayout(FloatLayout):
         ret = super(RelativeLayout, self).on_touch_move(touch)
         touch.pop()
         return ret
+    
+    def on_touch_hover(self, touch):
+        x, y = touch.x, touch.y
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        ret = super(RelativeLayout, self).on_touch_hover(touch)
+        touch.pop()
+        return ret
 
     def on_touch_up(self, touch):
         x, y = touch.x, touch.y

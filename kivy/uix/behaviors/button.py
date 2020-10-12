@@ -116,8 +116,7 @@ class ButtonBehavior(object):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
         if 'min_state_time' not in kwargs:
-            self.min_state_time = float(Config.get('graphics',
-                                                   'min_state_time'))
+            self.min_state_time = float(Config.get('graphics', 'min_state_time'))
         super(ButtonBehavior, self).__init__(**kwargs)
         self.__state_event = None
         self.__touch_time = None
@@ -165,15 +164,13 @@ class ButtonBehavior(object):
         touch.ungrab(self)
         self.last_touch = touch
 
-        if (not self.always_release and
-                not self.collide_point(*touch.pos)):
+        if (not self.always_release and not self.collide_point(*touch.pos)):
             self._do_release()
             return
 
         touchtime = time() - self.__touch_time
         if touchtime < self.min_state_time:
-            self.__state_event = Clock.schedule_once(
-                self._do_release, self.min_state_time - touchtime)
+            self.__state_event = Clock.schedule_once(self._do_release, self.min_state_time - touchtime)
         else:
             self._do_release()
         self.dispatch('on_release')

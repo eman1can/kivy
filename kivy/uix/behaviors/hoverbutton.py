@@ -60,8 +60,7 @@ class HoverButtonBehavior(HoverBehavior, ButtonBehavior):
         self.state = 'hover_down'
 
     def _do_enter(self):
-        # The button will always be on normal
-        self.state = 'hover_normal'
+        self.state = f'hover_{self.state}'
 
     def _do_release(self, *args):
         # We could be outside the box

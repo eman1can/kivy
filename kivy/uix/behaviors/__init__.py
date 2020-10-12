@@ -82,7 +82,7 @@ __all__ = ('ButtonBehavior', 'ToggleButtonBehavior', 'DragBehavior',
            'FocusBehavior', 'CompoundSelectionBehavior',
            'CodeNavigationBehavior', 'EmacsBehavior', 'CoverBehavior',
            'TouchRippleBehavior', 'TouchRippleButtonBehavior', 'HoverBehavior',
-           'PixelPerfectCollisionBehavior')
+           'PixelPerfectCollisionBehavior', 'HoverButtonBehavior')
 
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
@@ -92,6 +92,7 @@ from kivy.uix.behaviors.drag import DragBehavior
 from kivy.uix.behaviors.emacs import EmacsBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.behaviors.hover import HoverBehavior
+from kivy.uix.behaviors.hoverbutton import HoverButtonBehavior
 from kivy.uix.behaviors.pixelperfectcollision import PixelPerfectCollisionBehavior
 from kivy.uix.behaviors.togglebutton import ToggleButtonBehavior
 from kivy.uix.behaviors.touchripple import TouchRippleBehavior

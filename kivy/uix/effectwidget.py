@@ -357,6 +357,34 @@ vec4 effect( vec4 color, sampler2D buf0, vec2 texCoords, vec2 coords)
 '''
 
 
+effect_drop_shadow = '''
+uniform vec4 tint;
+
+#define M_PI 3.1415926535897932384626433832795
+vec4 effect(vec4 color, sampler2D texture, vec2 tex_coords, vec2 coords) {{
+    vec2 coords2;
+    float x, y;
+    float radius, sampling, surface;
+    vec4 shadow;
+    coords2 = coords + vec2({offset_x:f}, {offset_y:f}) ;
+    radius = {radius:f};
+    sampling = {sampling:f};
+    if (color.a >= .99)
+        return color;
+    surface = (sampling * M_PI * radius * radius) / 2.;
+    shadow = vec4(0., 0., 0., 0.);
+    for (x = -radius; x < radius; x += sampling)
+        for (y = -radius; y < radius; y += sampling)
+            if (length(vec2(x, y)) <= radius)
+                shadow += texture2D(
+                    texture,
+                    vec2(coords2.x + x, coords2.y + y) / resolution
+                    ).a * tint / surface;
+    return color + shadow * (shadow.a - color.a);
+}}
+'''
+
+
 class EffectBase(EventDispatcher):
     '''The base class for GLSL effects. It simply returns its input.
 
@@ -406,8 +434,7 @@ class EffectBase(EventDispatcher):
         '''
         if self.fbo is None:
             return
-        self.fbo.set_fs(shader_header + shader_uniforms + self.glsl +
-                        shader_footer_effect)
+        self.fbo.set_fs(shader_header + shader_uniforms + self.glsl + shader_footer_effect)
 
     def _load_from_source(self, *args):
         '''(internal) Loads the glsl string from a source file.'''
@@ -581,6 +608,44 @@ class FXAAEffect(EffectBase):
         self.glsl = effect_fxaa
 
 
+class DropShadowEffect(AdvancedEffectBase):
+    '''Add DropShadow to the input.'''
+    offset = ListProperty([0, 0])
+    tint = ListProperty([0, 0, 0, 1])
+    radius = NumericProperty(1)
+    sampling = NumericProperty(1)
+
+    def __init__(self, *args, **kwargs):
+        super(DropShadowEffect, self).__init__(*args, **kwargs)
+        self.fbind('offset', self.do_glsl)
+        self.fbind('tint', self.do_glsl)
+        self.fbind('radius', self.do_glsl)
+        self.fbind('sampling', self.do_glsl)
+        self.uniforms = {'tint': [0.0, 0.0, 0.0, 0.0]}
+        self.do_glsl()
+
+    def on_size(self, *args):
+        self.do_glsl()
+
+    def do_glsl(self, *args):
+        self.uniforms['tint'] = [float(i) for i in self.tint]
+        self.glsl = effect_drop_shadow.format(
+            offset_x=self.offset[0],
+            offset_y=self.offset[1],
+            radius=self.radius,
+            sampling=self.sampling)
+
+    def hide_shadow(self):
+        array = [float(i) for i in self.tint]
+        array[3] = 0
+        self.uniforms['tint'] = array
+
+    def show_shadow(self):
+        array = [float(i) for i in self.tint]
+        array[3] = 1
+        self.uniforms['tint'] = array
+
+
 class EffectFbo(Fbo):
     '''An :class:`~kivy.graphics.Fbo` with extra functionality that allows
     attempts to set a new shader. See :meth:`set_fs`.
@@ -701,6 +766,9 @@ class EffectWidget(RelativeLayout):
         per effect, and makes sure all sizes etc. are correct and
         consistent.
         '''
+        if self.width <= 0 or self.height <= 0:
+            return
+
         # Add/remove fbos until there is one per effect
         while len(self.fbo_list) < len(self.effects):
             with self.canvas:

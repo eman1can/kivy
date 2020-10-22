@@ -353,12 +353,14 @@
             shorten: True
             text: ctx.name
             font_name: ctx.controller().font_name
+            color: ctx.controller().font_color
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
             text: '{}'.format(ctx.get_nice_size())
             font_name: ctx.controller().font_name
+            color: ctx.controller().font_color
 
 <FileChooserIconLayout>:
     on_entry_added: stacklayout.add_widget(args[1])

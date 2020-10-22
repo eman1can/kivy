@@ -45,6 +45,7 @@ from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
 from kivy.config import Config
+from kivy.properties import ObjectProperty
 from kivy.utils import platform
 
 from collections import deque
@@ -325,6 +326,8 @@ class LoaderBase(object):
         data = fd = _out_osfd = None
         try:
             _out_filename = ''
+            if len(filename) == 0:
+                raise Exception('Invalid filename')
             db_connector = App.get_running_app().db_connection
             s3 = db_connector.s3
             database = db_connector.photo_database

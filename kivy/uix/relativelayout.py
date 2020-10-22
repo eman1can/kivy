@@ -286,6 +286,14 @@ class RelativeLayout(FloatLayout):
     def to_local(self, x, y, **k):
         return (x - self.x, y - self.y)
 
+    def get_local(self, x, y):
+        if self.parent is None:
+            # print(f'{self} → {x - self.x}, {y - self.y}')
+            return x - self.x, y - self.y
+        x, y = self.parent.get_local(x, y)
+        # print(f'{self} → {x - self.x}, {y - self.y}')
+        return x - self.x, y - self.y
+
     def _apply_transform(self, m, pos=None):
         m.translate(self.x, self.y, 0)
         return super(RelativeLayout, self)._apply_transform(m, (0, 0))

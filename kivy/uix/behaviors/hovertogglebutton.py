@@ -21,7 +21,7 @@ from kivy.uix.behaviors.button import ButtonBehavior
 from weakref import ref
 
 
-class HoverToggleButtonBehavior(ButtonBehavior, HoverButtonBehavior):
+class HoverToggleButtonBehavior(HoverButtonBehavior):
     '''This `mixin <https://en.wikipedia.org/wiki/Mixin>`_ class provides
     :mod:`~kivy.uix.togglebutton` behavior. Please see the
     :mod:`togglebutton behaviors module <kivy.uix.behaviors.togglebutton>`

@@ -524,6 +524,8 @@ class FileChooserController(RelativeLayout):
     from :class:`~kivy.config.Config`.
     '''
 
+    font_color = ListProperty([1, 1, 1, 1])
+
     _update_files_ev = None
     _create_files_entries_ev = None
 
@@ -856,8 +858,7 @@ class FileChooserController(RelativeLayout):
             self.files[:] = []
 
     def _create_entry_widget(self, ctx):
-        template = self.layout._ENTRY_TEMPLATE\
-            if self.layout else self._ENTRY_TEMPLATE
+        template = self.layout._ENTRY_TEMPLATE if self.layout else self._ENTRY_TEMPLATE
         return Builder.template(template, **ctx)
 
     def _add_files(self, path, parent=None):

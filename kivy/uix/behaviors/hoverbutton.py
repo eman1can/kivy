@@ -60,6 +60,7 @@ class HoverButtonBehavior(HoverBehavior, ButtonBehavior):
         self.state = 'hover_down'
 
     def _do_enter(self):
+        super()._do_enter()
         self.state = f'hover_{self.state}'
 
     def _do_release(self, *args):
@@ -70,5 +71,7 @@ class HoverButtonBehavior(HoverBehavior, ButtonBehavior):
             self.state = 'normal'
 
     def _do_exit(self, *args):
+        super()._do_exit()
         # We might be down or up
-        self.state = self.state[len('hover_'):]
+        if self.state.startswith('hover_'):
+            self.state = self.state[len('hover_'):]

@@ -78,6 +78,12 @@ class HoverBehavior(object):
 
         '''
 
+    hover_x = NumericProperty(0)
+    hover_y = NumericProperty(0)
+    hover_width = NumericProperty(0)
+    hover_height = NumericProperty(0)
+    hover_rect = ReferenceListProperty(hover_x, hover_y, hover_width, hover_height)
+
     hover_state = OptionProperty('outside', options=('outside', 'inside'))
     '''The state of the hover, must be one of 'outside' or 'inside'.
         The state is 'inside' only when the widget is being hovered over,
@@ -103,6 +109,8 @@ class HoverBehavior(object):
     taken from :class:`~kivy.config.Config`.
     '''
 
+    layer = NumericProperty(0)
+
     def __init__(self, **kwargs):
         kwargs['hover'] = True
         self.register_event_type('on_enter')
@@ -113,7 +121,13 @@ class HoverBehavior(object):
         self.__state_event = None
         self.__hover_time = None
         self.fbind('state', self.cancel_event)
-        self.hover_subscribe()
+        self.last_layer = self.layer
+        self.hover_subscribe(self, self.layer)
+
+    def on_layer(self, *args):
+        self.hover_unsubscribe(self, self.last_layer)
+        self.last_layer = self.layer
+        self.hover_subscribe(self, self.layer)
 
     def _do_enter(self):
         self.hover_state = 'inside'
@@ -132,8 +146,20 @@ class HoverBehavior(object):
     def on_exit(self):
         pass
 
+    def collide_point(self, x, y):
+        if self.hover_x != 0 or self.hover_y != 0 or self.hover_width != 0 or self.hover_height != 0:
+            x, y = self.to_local(x, y)
+            # print(f'{self.hover_x} <= {x} <= {self.hover_x + self.hover_width} | {self.hover_y} <= {y} <= {self.hover_y + self.hover_height}')
+            return self.hover_x <= x <= self.hover_x + self.hover_width and self.hover_y <= y <= self.hover_y + self.hover_height
+        return super().collide_point(x, y)
+
     def on_move_hover(self, x, y):
-        hover = super().on_move_hover(x, y)
+        if self.parent is None:
+            return
+        x, y = self.parent.get_local(x, y)
+        # print(f'{self.x} <= {x} <= {self.right} | {self.y} <= {y} <= {self.top}')
+        hover = self.collide_point(x, y)
+        # hover = super().on_move_hover(x, y)
         if hover:
             self.last_pos = x, y
             if self.hover_state == 'outside':

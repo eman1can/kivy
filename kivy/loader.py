@@ -35,13 +35,17 @@ parameters:
 
 __all__ = ('Loader', 'LoaderBase', 'ProxyImage')
 
+from io import BytesIO
+
 from kivy import kivy_data_dir
+from kivy.app import App
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
 from kivy.compat import PY2, string_types
 from kivy.config import Config
+from kivy.properties import ObjectProperty
 from kivy.utils import platform
 
 from collections import deque
@@ -288,6 +292,8 @@ class LoaderBase(object):
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp', 'smb'):
             data = self._load_urllib(filename, kwargs['kwargs'])
+        elif proto in ('S3'):
+            data = self._load_S3(filename.split('://')[1], kwargs['kwargs'])
         else:
             data = self._load_local(filename, kwargs['kwargs'])
 
@@ -302,6 +308,92 @@ class LoaderBase(object):
         # With recent changes to CoreImage, we must keep data otherwise,
         # we might be unable to recreate the texture afterwise.
         return ImageLoader.load(filename, keep_data=True, **kwargs)
+
+    def _load_S3(self, filename, kwargs):
+        '''(internal) Loading a amazon bucket network file. First download it, save it to a
+                temporary file, and pass it to _load_local().'''
+        if PY2:
+            import urllib2 as urllib_request
+
+            def gettype(info):
+                return info.gettype()
+        else:
+            import urllib.request as urllib_request
+
+            def gettype(info):
+                return info.get_content_type()
+        import tempfile
+        data = fd = _out_osfd = None
+        try:
+            _out_filename = ''
+            if len(filename) == 0:
+                raise Exception('Invalid filename')
+            db_connector = App.get_running_app().db_connection
+            s3 = db_connector.s3
+            database = db_connector.photo_database
+            fd = s3.get_object(Bucket=database, Key=filename)['Body']
+
+            if '.' in filename:
+                # allow extension override from URL fragment
+                suffix = '.' + filename.split('.')[-1]
+            else:
+                ctype = gettype(fd.info())
+                suffix = mimetypes.guess_extension(ctype)
+                suffix = LoaderBase.EXT_ALIAS.get(suffix, suffix)
+                if not suffix:
+                    # strip query string and split on path
+                    parts = filename.split('?')[0].split('/')[1:]
+                    while len(parts) > 1 and not parts[0]:
+                        # strip out blanks from '//'
+                        parts = parts[1:]
+                    if len(parts) > 1 and '.' in parts[-1]:
+                        # we don't want '.com', '.net', etc. as the extension
+                        suffix = '.' + parts[-1].split('.')[-1]
+            _out_osfd, _out_filename = tempfile.mkstemp(prefix='kivyloader', suffix=suffix)
+
+            idata = fd.read()
+            fd.close()
+            fd = None
+
+            # write to local filename
+            write(_out_osfd, idata)
+            close(_out_osfd)
+            _out_osfd = None
+
+            # load data
+            data = self._load_local(_out_filename, kwargs)
+
+            # FIXME create a clean API for that
+            for imdata in data._data:
+                imdata.source = filename
+        except Exception as ex:
+            Logger.exception('Loader: Failed to load image <%s>' % filename)
+            # close file when remote file not found or download error
+            try:
+                if _out_osfd:
+                    close(_out_osfd)
+            except OSError:
+                pass
+
+            # update client
+            for c_filename, client in self._client[:]:
+                if filename != c_filename:
+                    continue
+                # got one client to update
+                client.image = self.error_image
+                client.dispatch('on_error', error=ex)
+                self._client.remove((c_filename, client))
+
+            return self.error_image
+        finally:
+            if fd:
+                fd.close()
+            if _out_osfd:
+                close(_out_osfd)
+            if _out_filename != '':
+                unlink(_out_filename)
+
+        return data
 
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
@@ -360,10 +452,10 @@ class LoaderBase(object):
                     if len(parts) > 1 and '.' in parts[-1]:
                         # we don't want '.com', '.net', etc. as the extension
                         suffix = '.' + parts[-1].split('.')[-1]
-            _out_osfd, _out_filename = tempfile.mkstemp(
-                prefix='kivyloader', suffix=suffix)
+            _out_osfd, _out_filename = tempfile.mkstemp(prefix='kivyloader', suffix=suffix)
 
             idata = fd.read()
+            print(idata)
             fd.close()
             fd = None
 

@@ -876,7 +876,7 @@ class WindowBase(EventDispatcher):
         'on_close', 'on_minimize', 'on_maximize', 'on_restore',
         'on_hide', 'on_show', 'on_motion', 'on_touch_down',
         'on_touch_move', 'on_touch_up', 'on_mouse_down',
-        'on_mouse_move', 'on_mouse_up', 'on_keyboard', 'on_key_down',
+        'on_mouse_move', 'on_mouse_hover', 'on_mouse_up', 'on_keyboard', 'on_key_down',
         'on_key_up', 'on_textinput', 'on_dropfile', 'on_request_close',
         'on_cursor_enter', 'on_cursor_leave', 'on_joy_axis',
         'on_joy_hat', 'on_joy_ball', 'on_joy_button_down',
@@ -974,6 +974,9 @@ class WindowBase(EventDispatcher):
 
         self.children = []
         self.parent = self
+        
+        self.subscribed_widgets = {}
+        self.blocked_layers = []
 
         # before creating the window
         import kivy.core.gl  # NOQA
@@ -1439,6 +1442,44 @@ class WindowBase(EventDispatcher):
         for w in self.children[:]:
             if w.dispatch('on_touch_move', touch):
                 return True
+
+    def is_visible(self):
+        return True
+
+    def get_local(self, x, y):
+        # print(f'Window → {x}, {y}')
+        return x, self.height - y
+
+    def hover_subscribe(self, widget, layer):
+        if layer not in self.subscribed_widgets:
+            self.subscribed_widgets[layer] = []
+        self.subscribed_widgets[layer].append(widget)
+        Logger.debug(f"Subscribed {widget} at {layer}")
+
+    def hover_unsubscribe(self, widget, layer):
+        if layer not in self.subscribed_widgets:
+            raise ValueError("This layer doesn't exist")
+        if widget not in self.subscribed_widgets[layer]:
+            raise ValueError("This widget was not subscribed")
+        self.subscribed_widgets[layer].remove(widget)
+        Logger.debug(f"UN-Subscribed {widget} at {layer}")
+
+    def block_layer(self, layer):
+        self.blocked_layers.append(layer)
+
+    def unblock_layer(self, layer):
+        if layer in self.blocked_layers:
+            self.blocked_layers.remove(layer)
+
+    def on_mouse_hover(self, x, y, modifiers):
+        if not self.focus:
+            return True
+        top_layer = len(self.subscribed_widgets) - 1
+        for layer in range(top_layer, -1, -1):
+            if layer not in self.blocked_layers:
+                for widget in self.subscribed_widgets[layer]:
+                    if widget.dispatch('on_move_hover', x, y):
+                        return True
 
     def on_touch_up(self, touch):
         '''Event called when a touch event is released (terminated).

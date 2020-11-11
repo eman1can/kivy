@@ -325,9 +325,10 @@ class Widget(WidgetBase):
     '''
 
     __metaclass__ = WidgetMetaclass
-    __events__ = (
-        'on_touch_down', 'on_touch_move', 'on_touch_up', 'on_kv_post')
+    __events__ = ( 'on_touch_down', 'on_touch_move', 'on_move_hover', 'on_touch_up', 'on_kv_post')
     _proxy_ref = None
+
+    hover = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -346,6 +347,8 @@ class Widget(WidgetBase):
             del kwargs[key]
 
         self._disabled_count = 0
+        self.subscribed_widgets = []
+        self.blocked_layers = []
 
         super(Widget, self).__init__(**kwargs)
 
@@ -555,6 +558,62 @@ class Widget(WidgetBase):
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
+
+    def on_parent(self, *args):
+        if self.parent is None:
+            return
+        if self.subscribed_widgets is not None:
+            for widget_and_layer in self.subscribed_widgets:
+                self.hover_subscribe(*widget_and_layer)
+            self.subscribed_widgets = None
+        if self.blocked_layers is not None:
+            for layer in self.blocked_layers:
+                self.block_layer(layer)
+        if self.hover:
+            self.hover_subscribe()
+        # else:
+        #     self.hover_unsubscribe()
+    
+    def hover_subscribe(self, widget=None, layer=0):
+        if widget is None:
+            widget = self
+        if self.parent is None:
+            self.subscribed_widgets.append((widget, layer))
+            return
+        print(self, widget, self.parent, layer)
+        self.parent.hover_subscribe(widget, layer)
+
+    def block_layer(self, layer):
+        if self.parent is None:
+            self.blocked_layers.append(layer)
+            return
+        self.parent.block_layer(layer)
+
+    def unblock_layer(self, layer):
+        self.parent.unblock_layer(layer)
+
+    def hover_unsubscribe(self, widget=None, layer=0):
+        if widget is None:
+            widget = self
+        if self.parent is not None:
+            self.parent.hover_unsubscribe(widget, layer)
+        # super().hover_unsubscribe(widget)
+    
+    def is_visible(self):
+        if self.parent is None:
+            return False
+        return self.parent.is_visible()
+    
+    def on_move_hover(self, x, y):
+        '''Receive a touch hover event. The touch is in parent coordinates.
+
+        This is only dispatched on displayed and on active widgets. True will stop dispatching. False will go to next.
+        '''
+        if self.disabled:
+            return False
+        if self.is_visible() and self.collide_point(x, y):
+            return True
+        return False
 
     def on_touch_up(self, touch):
         '''Receive a touch up event. The touch is in parent coordinates.
@@ -1007,6 +1066,13 @@ class Widget(WidgetBase):
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
+
+    def get_local(self, x, y):
+        if self.parent is None:
+            return x, y
+        x, y = self.parent.get_local(x, y)
+        # print(f'{self} → {x}, {y}')
+        return x, y
 
     def _apply_transform(self, m, pos=None):
         if self.parent:

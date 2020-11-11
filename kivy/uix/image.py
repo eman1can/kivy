@@ -228,10 +228,7 @@ class Image(Widget):
             iw = ih * ratio
         return [iw, ih]
 
-    norm_image_size = AliasProperty(get_norm_image_size,
-                                    bind=('texture', 'size', 'allow_stretch',
-                                          'image_ratio', 'keep_ratio'),
-                                    cache=True)
+    norm_image_size = AliasProperty(get_norm_image_size, bind=('texture', 'size', 'allow_stretch', 'image_ratio', 'keep_ratio'), cache=True)
     '''Normalized image size within the widget box.
 
     This size will always fit the widget size and will preserve the image
@@ -410,7 +407,7 @@ class AsyncImage(Image):
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
-        return proto in ('http', 'https', 'ftp', 'smb')
+        return proto in ('http', 'https', 'ftp', 'smb', 'S3')
 
     def _clear_core_image(self):
         if self._coreimage:

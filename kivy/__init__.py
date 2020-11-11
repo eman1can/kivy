@@ -43,7 +43,6 @@ from kivy._version import __version__, RELEASE as _KIVY_RELEASE, \
 # internals for post-configuration
 __kivy_post_configuration = []
 
-
 if platform == 'macosx' and sys.maxsize < 9223372036854775807:
     r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly
@@ -115,6 +114,8 @@ def require(version):
     revision, tag, tagrev = parse_kivy_version(version)
     # current version
     sysrevision, systag, systagrev = parse_kivy_version(__version__)
+
+    Logger.log(LOG_LEVELS.get('info'), f"Kivy: Using Kivy version {int(sysrevision[0])}.{int(sysrevision[1])}.{int(sysrevision[2])}.{systag}{systagrev}")
 
     if tag and not systag:
         Logger.warning('Application requested a dev version of Kivy. '

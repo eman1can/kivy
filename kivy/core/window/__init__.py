@@ -1464,22 +1464,14 @@ class WindowBase(EventDispatcher):
         self.subscribed_widgets[layer].remove(widget)
         Logger.debug(f"UN-Subscribed {widget} at {layer}")
 
-    def block_layer(self, layer):
-        self.blocked_layers.append(layer)
-
-    def unblock_layer(self, layer):
-        if layer in self.blocked_layers:
-            self.blocked_layers.remove(layer)
-
     def on_mouse_hover(self, x, y, modifiers):
         if not self.focus:
             return True
-        top_layer = len(self.subscribed_widgets) - 1
-        for layer in range(top_layer, -1, -1):
-            if layer not in self.blocked_layers:
-                for widget in self.subscribed_widgets[layer]:
-                    if widget.dispatch('on_move_hover', x, y):
-                        return True
+        if len(self.subscribed_widgets) == 0:
+            return
+        for widget in self.subscribed_widgets[max(self.subscribed_widgets.keys())]:
+            if widget.dispatch('on_move_hover', x, y):
+                return True
 
     def on_touch_up(self, touch):
         '''Event called when a touch event is released (terminated).

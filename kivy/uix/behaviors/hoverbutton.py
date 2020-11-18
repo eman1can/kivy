@@ -49,7 +49,7 @@ from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors.hover import HoverBehavior
 
 
-class HoverButtonBehavior(HoverBehavior, ButtonBehavior):
+class HoverButtonBehavior(ButtonBehavior, HoverBehavior):
     state = OptionProperty('normal', options=('normal', 'down', 'hover_normal', 'hover_down'))
 
     def __init__(self, **kwargs):
@@ -58,9 +58,12 @@ class HoverButtonBehavior(HoverBehavior, ButtonBehavior):
     def _do_press(self):
         # You should always be inside the collision to detect this. So always go to hover_down
         self.state = 'hover_down'
+        print('hover')
 
     def _do_enter(self):
         super()._do_enter()
+        if self.state.startswith('hover_'):
+            return
         self.state = f'hover_{self.state}'
 
     def _do_release(self, *args):

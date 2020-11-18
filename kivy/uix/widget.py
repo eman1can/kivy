@@ -348,7 +348,6 @@ class Widget(WidgetBase):
 
         self._disabled_count = 0
         self.subscribed_widgets = []
-        self.blocked_layers = []
 
         super(Widget, self).__init__(**kwargs)
 
@@ -566,13 +565,8 @@ class Widget(WidgetBase):
             for widget_and_layer in self.subscribed_widgets:
                 self.hover_subscribe(*widget_and_layer)
             self.subscribed_widgets = None
-        if self.blocked_layers is not None:
-            for layer in self.blocked_layers:
-                self.block_layer(layer)
-        if self.hover:
-            self.hover_subscribe()
-        # else:
-        #     self.hover_unsubscribe()
+        # if self.hover:
+        #     self.hover_subscribe()
     
     def hover_subscribe(self, widget=None, layer=0):
         if widget is None:
@@ -580,25 +574,15 @@ class Widget(WidgetBase):
         if self.parent is None:
             self.subscribed_widgets.append((widget, layer))
             return
-        print(self, widget, self.parent, layer)
+        # print(self.parent, '→', widget, '-', layer)
         self.parent.hover_subscribe(widget, layer)
-
-    def block_layer(self, layer):
-        if self.parent is None:
-            self.blocked_layers.append(layer)
-            return
-        self.parent.block_layer(layer)
-
-    def unblock_layer(self, layer):
-        self.parent.unblock_layer(layer)
 
     def hover_unsubscribe(self, widget=None, layer=0):
         if widget is None:
             widget = self
         if self.parent is not None:
             self.parent.hover_unsubscribe(widget, layer)
-        # super().hover_unsubscribe(widget)
-    
+
     def is_visible(self):
         if self.parent is None:
             return False

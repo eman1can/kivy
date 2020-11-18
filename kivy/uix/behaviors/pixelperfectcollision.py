@@ -70,23 +70,25 @@ class PixelPerfectCollisionBehavior(object):
 
     def collide_point(self, x, y):
         if self.__collision_mask is None:
-            print("No collision mask")
+            # print("No collision mask")
             return False
         if not super().collide_point(x, y):
-            print("Not inside the widget")
+            # print("Not inside the widget")
             return False
         try:
-            print()
+            # print(x, y)
+            # print(self.x, self.y, self.right, self.top)
             wscale = (self.__collision_mask.width / self.width)
             hscale = (self.__collision_mask.height / self.height)
-            print(wscale, hscale)
-            print(x, self.x)
-            print(y, self.y)
-            print((x - self.x) * wscale, (self.height - (y - self.y)) * hscale)
+            # print(wscale, hscale)
+            # print(x, self.x)
+            # print(y, self.y)
+            # print((x - self.x) * wscale, (self.height - (y - self.y)) * hscale)
+            # print(self.__collision_mask.width, self.__collision_mask.height)
             color = self.__collision_mask.read_pixel((x - self.x) * wscale, (self.height - (y - self.y)) * hscale)
-            print(color)
+            # print(color)
         except Exception as e:
-            print(e)
             color = 0, 0, 0, 0
         if color[-1] > 0:
+            print(self.x, self.y, 'collide')
             return True

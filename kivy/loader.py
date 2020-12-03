@@ -328,9 +328,9 @@ class LoaderBase(object):
             _out_filename = ''
             if len(filename) == 0:
                 raise Exception('Invalid filename')
-            db_connector = App.get_running_app().db_connection
-            s3 = db_connector.s3
-            database = db_connector.photo_database
+            connector = App.get_running_app().get_database()
+            s3 = connector.s3
+            database = connector.photo_database
             fd = s3.get_object(Bucket=database, Key=filename)['Body']
 
             if '.' in filename:

@@ -46,12 +46,12 @@ Kv Example::
 
 __all__ = ('Button', )
 
-from kivy.uix.label import Label
+from kivy.uix.auto_scale_label import AutoScaleLabel
 from kivy.properties import StringProperty, ListProperty, ColorProperty
 from kivy.uix.behaviors import ButtonBehavior
 
 
-class Button(ButtonBehavior, Label):
+class Button(ButtonBehavior, AutoScaleLabel):
     '''Button class, see module documentation for more information.
 
     .. versionchanged:: 1.8.0

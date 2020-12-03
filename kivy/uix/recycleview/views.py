@@ -403,8 +403,7 @@ class RecycleDataAdapter(EventDispatcher):
                 visible_views[index] = view
                 ret_remain.append((index, view))
             else:
-                view = get_view(index, data[index],
-                                viewclasses[index]['viewclass'])
+                view = get_view(index, data[index], viewclasses[index]['viewclass'])
                 if view is None:
                     continue
                 visible_views[index] = view

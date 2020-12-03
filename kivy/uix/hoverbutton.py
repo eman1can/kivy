@@ -48,7 +48,7 @@ __all__ = ('HoverButton', )
 
 from kivy.uix.label import Label
 from kivy.properties import StringProperty, ListProperty, ColorProperty
-from kivy.uix.behaviors import HoverButtonBehavior, PixelPerfectCollisionBehavior
+from kivy.uix.behaviors import HoverButtonBehavior
 
 
 class HoverButton(HoverButtonBehavior, Label):

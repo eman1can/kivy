@@ -74,12 +74,10 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
         if key is None:
             nodes = self._selectable_nodes = []
         else:
-            nodes = self._selectable_nodes = [
-                i for i, d in enumerate(data) if d.get(key)]
+            nodes = self._selectable_nodes = [d for i, d in enumerate(data) if d.get(key)]
 
-        self._nodes_map = {v: k for k, v in enumerate(nodes)}
-        return super(LayoutSelectionBehavior, self).compute_sizes_from_data(
-            data, flags)
+        self._nodes_map = [v for v in nodes]
+        return super(LayoutSelectionBehavior, self).compute_sizes_from_data(data, flags)
 
     def get_selectable_nodes(self):
         # the indices of the data is used as the nodes
@@ -87,11 +85,10 @@ class LayoutSelectionBehavior(CompoundSelectionBehavior):
 
     def get_index_of_node(self, node, selectable_nodes):
         # the indices of the data is used as the nodes, so node
-        return self._nodes_map[node]
+        return self._nodes_map.index(node)
 
     def goto_node(self, key, last_node, last_node_idx):
-        node, idx = super(LayoutSelectionBehavior, self).goto_node(
-            key, last_node, last_node_idx)
+        node, idx = super(LayoutSelectionBehavior, self).goto_node(key, last_node, last_node_idx)
         if node is not last_node:
             self.goto_view(node)
         return node, idx
@@ -136,8 +133,7 @@ apply_selection` method will be called every time the view needs to refresh
         '''
         viewclass = view.__class__
         if viewclass not in _view_base_cache:
-            _view_base_cache[viewclass] = isinstance(view,
-                                                     RecycleDataViewBehavior)
+            _view_base_cache[viewclass] = isinstance(view, RecycleDataViewBehavior)
 
         if _view_base_cache[viewclass]:
             view.apply_selection(self.recycleview, index, is_selected)

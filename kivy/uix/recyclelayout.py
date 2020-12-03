@@ -232,8 +232,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
 
     def set_visible_views(self, indices, data, viewport):
         view_opts = self.view_opts
-        new, remaining, old = self.recycleview.view_adapter.set_visible_views(
-            indices, data, view_opts)
+        new, remaining, old = self.recycleview.view_adapter.set_visible_views(indices, data, view_opts)
 
         remove = self.remove_widget
         view_indices = self.view_indices
@@ -291,8 +290,7 @@ class RecycleLayout(RecycleLayoutManagerBehavior, Layout):
         if shh is None and height_none:
             h = None
         opt['size'] = w, h
-        super(RecycleLayout, self).refresh_view_layout(
-            index, opt, view, viewport)
+        super(RecycleLayout, self).refresh_view_layout(index, opt, view, viewport)
 
     def remove_views(self):
         super(RecycleLayout, self).remove_views()
